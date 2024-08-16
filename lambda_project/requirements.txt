@@ -1,0 +1,5 @@
+pinecone-client
+voyageai
+anthropic
+async_timeout
+pinecone

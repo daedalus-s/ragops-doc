@@ -241,7 +241,7 @@ function App() {
                   <circle cx="35" cy="40" r="5" fill="#FF6B6B" />
                   <circle cx="65" cy="40" r="5" fill="#FF6B6B" />
                 </Logo>
-              <FancyHeader variant="h2" component="h2" gutterBottom>
+              <FancyHeader variant="h1" component="h1" gutterBottom>
                 RAGOps Recommender
               </FancyHeader>
               </HeaderContainer>

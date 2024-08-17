@@ -6,7 +6,7 @@ from pinecone import Pinecone, ServerlessSpec
 import voyageai
 import anthropic
 import re
-
+#import pinecone-client
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 pinecone_client = Pinecone(api_key=os.environ['PINECONE_API_KEY'])

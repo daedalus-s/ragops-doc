@@ -27,7 +27,7 @@ jobs:
         echo "ReactDOM.render(<App />, document.getElementById('root'));" >> src/index.js
     
     - name: Install dependencies
-      run: npm ci
+      run: npm install
     
     - name: Build
       run: npm run build

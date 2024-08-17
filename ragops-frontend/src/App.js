@@ -8,6 +8,7 @@ import { motion, useAnimation } from 'framer-motion';
 import { useSpring, animated } from '@react-spring/web';
 import { ParallaxProvider, Parallax } from 'react-scroll-parallax';
 import { useInView } from 'react-intersection-observer';
+import logo from './logo2.png';
 
 const theme = createTheme({
   palette: {
@@ -121,15 +122,40 @@ const StyledForm = styled('form')({
 });
 
 const FancyHeader = styled(Typography)(({ theme }) => ({
-  background: '#00008B', // Lilac gradient
+  background: 'linear-gradient(45deg, #FF6B6B 30%, #4ECDC4 90%)',
   WebkitBackgroundClip: 'text',
   WebkitTextFillColor: 'transparent',
-  padding: '20px',
+  padding: '10px',
   borderRadius: '10px',
-  boxShadow: '0 3px 5px 2px rgba(200, 162, 200, .3)',
   textAlign: 'center',
-  marginBottom: '2rem',
+  marginBottom: '1rem',
+  fontFamily: '"Cherry Bomb One", cursive',
+  fontSize: '2.5rem',
+  textShadow: '2px 2px 4px rgba(0,0,0,0.1)',
+  animation: `$bounce 0.5s ease-in-out infinite alternate`,
 }));
+
+const bounce = keyframes`
+  from {
+    transform: translateY(0px);
+  }
+  to {
+    transform: translateY(-10px);
+  }
+`;
+
+const Logo = styled('svg')({
+  width: '50px',
+  height: '50px',
+  marginRight: '10px',
+});
+
+const HeaderContainer = styled(Box)({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginBottom: '2rem',
+});
 
 const AnimatedIcon = ({ Icon }) => {
   return (
@@ -193,7 +219,7 @@ function App() {
     opacity: response ? 1 : 0,
     transform: response ? 'translateY(0)' : 'translateY(50px)',
   });
-
+  
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -208,9 +234,17 @@ function App() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <FancyHeader variant="h1" component="h1" gutterBottom>
-                RAGOps Product Recommender
+              <HeaderContainer>
+                <Logo viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="45" fill="#4ECDC4" />
+                  <path d="M30 40 Q50 20 70 40 T30 60" stroke="#FF6B6B" strokeWidth="5" fill="none" />
+                  <circle cx="35" cy="40" r="5" fill="#FF6B6B" />
+                  <circle cx="65" cy="40" r="5" fill="#FF6B6B" />
+                </Logo>
+              <FancyHeader variant="h2" component="h2" gutterBottom>
+                RAGOps Recommender
               </FancyHeader>
+              </HeaderContainer>
             </motion.div>
           </Parallax>
           

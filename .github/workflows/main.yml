@@ -17,14 +17,101 @@ jobs:
       with:
         node-version: '14.x'
     
-    - name: Create src directory if it doesn't exist
+    - name: Create package.json if it doesn't exist
+      run: |
+        if [ ! -f package.json ]; then
+          echo '{
+            "name": "ragops-product-recommender",
+            "version": "1.0.0",
+            "private": true,
+            "dependencies": {
+              "@emotion/react": "^11.10.5",
+              "@emotion/styled": "^11.10.5",
+              "@mui/icons-material": "^5.11.0",
+              "@mui/material": "^5.11.0",
+              "axios": "^0.27.2",
+              "framer-motion": "^7.6.19",
+              "react": "^18.2.0",
+              "react-dom": "^18.2.0",
+              "react-intersection-observer": "^9.4.1",
+              "react-scripts": "5.0.1",
+              "react-scroll-parallax": "^3.3.2",
+              "react-spring": "^9.5.5"
+            },
+            "scripts": {
+              "start": "react-scripts start",
+              "build": "react-scripts build",
+              "test": "react-scripts test",
+              "eject": "react-scripts eject"
+            },
+            "eslintConfig": {
+              "extends": [
+                "react-app",
+                "react-app/jest"
+              ]
+            },
+            "browserslist": {
+              "production": [
+                ">0.2%",
+                "not dead",
+                "not op_mini all"
+              ],
+              "development": [
+                "last 1 chrome version",
+                "last 1 firefox version",
+                "last 1 safari version"
+              ]
+            }
+          }' > package.json
+        fi
+    
+    - name: Create src directory and App.js if they don't exist
       run: |
         mkdir -p src
-        touch src/index.js
-        echo "import React from 'react';" > src/index.js
-        echo "import ReactDOM from 'react-dom';" >> src/index.js
-        echo "import App from './App';" >> src/index.js
-        echo "ReactDOM.render(<App />, document.getElementById('root'));" >> src/index.js
+        if [ ! -f src/App.js ]; then
+          echo "import React from 'react';
+          
+          function App() {
+            return (
+              <div>
+                <h1>RAGOps Product Recommender</h1>
+                <p>Welcome to our product recommender!</p>
+              </div>
+            );
+          }
+          
+          export default App;" > src/App.js
+        fi
+        if [ ! -f src/index.js ]; then
+          echo "import React from 'react';
+          import ReactDOM from 'react-dom';
+          import App from './App';
+          
+          ReactDOM.render(
+            <React.StrictMode>
+              <App />
+            </React.StrictMode>,
+            document.getElementById('root')
+          );" > src/index.js
+        fi
+    
+    - name: Create public directory and index.html if they don't exist
+      run: |
+        mkdir -p public
+        if [ ! -f public/index.html ]; then
+          echo '<!DOCTYPE html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8" />
+              <meta name="viewport" content="width=device-width, initial-scale=1" />
+              <title>RAGOps Product Recommender</title>
+            </head>
+            <body>
+              <noscript>You need to enable JavaScript to run this app.</noscript>
+              <div id="root"></div>
+            </body>
+          </html>' > public/index.html
+        fi
     
     - name: Install dependencies
       run: npm install

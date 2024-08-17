@@ -7,16 +7,13 @@ import voyageai
 import anthropic
 import re
 
-# Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Initialize clients
 pinecone_client = Pinecone(api_key=os.environ['PINECONE_API_KEY'])
 vo = voyageai.Client(api_key=os.environ['VOYAGE_API_KEY'])
 claude = anthropic.Anthropic(api_key=os.environ['ANTHROPIC_API_KEY'])
 s3 = boto3.client('s3')
 
-# Constants
 INDEX_NAME = 'amazon-products'
 DIMENSION = 1024
 S3_BUCKET = os.environ['S3_BUCKET']
@@ -46,9 +43,8 @@ def generate_keywords(question):
         )
         
         raw_response = response.content[0].text
-        print(f"Raw Claude response: {raw_response}")  # Debug print
+        print(f"Raw Claude response: {raw_response}") 
         
-        # Extract JSON from the response
         json_match = re.search(r'\{.*\}', raw_response, re.DOTALL)
         if json_match:
             json_str = json_match.group(0)
@@ -65,11 +61,10 @@ def generate_keywords(question):
         return extract_keywords(question)
 
 def extract_keywords(text):
-    # Simple keyword extraction
     words = re.findall(r'\b\w+\b', text.lower())
     stopwords = set(['i', 'want', 'to', 'a', 'my', 'what', 'can', 'get', 'the', 'for', 'an', 'as', 'with'])
     keywords = [word for word in words if word not in stopwords and len(word) > 2]
-    return list(set(keywords))[:5]  # Return up to 5 unique keywords
+    return list(set(keywords))[:5] 
 
 def search_products(keywords, top_k=3):
     index = ensure_index_exists()
@@ -96,9 +91,9 @@ def generate_answer(results, question):
 
 def lambda_handler(event, context):
     try:
-        print(f"Received event: {event}")  # Debug print
+        print(f"Received event: {event}") 
         
-        # Parse the input
+
         if 'body' in event:
             body = json.loads(event['body'])
         elif isinstance(event, dict):
@@ -106,7 +101,7 @@ def lambda_handler(event, context):
         else:
             raise ValueError("Unexpected event structure")
 
-        print(f"Parsed body: {body}")  # Debug print
+        print(f"Parsed body: {body}") 
 
         question = body.get('question')
         
@@ -116,22 +111,21 @@ def lambda_handler(event, context):
                 'body': json.dumps({'error': 'No question provided'})
             }
         
-        print(f"Received question: {question}")  # Debug print
+        print(f"Received question: {question}")  
         
-        # Generate keywords
-        keywords = generate_keywords(question)
-        print(f"Generated keywords: {keywords}")  # Debug print
 
-        # Search for relevant products
+        keywords = generate_keywords(question)
+        print(f"Generated keywords: {keywords}")  
+
+
         results = search_products(keywords)
-        print(f"Found {len(results)} relevant products")  # Debug print
+        print(f"Found {len(results)} relevant products") 
         
-        # Generate answer
         if results:
             answer = generate_answer(results, question)
         else:
-            # Fallback answer if no products found
             answer = generate_fallback_answer(question)
+        
         
         return {
             'statusCode': 200,
@@ -149,7 +143,6 @@ def lambda_handler(event, context):
             'body': json.dumps({'error': 'An internal error occurred'})
         }
 
-#Uncomment and use this function if you need to update the index with new data
 def update_index(event, context):
      index = ensure_index_exists()
      s3_object = s3.get_object(Bucket=S3_BUCKET, Key=S3_KEY)

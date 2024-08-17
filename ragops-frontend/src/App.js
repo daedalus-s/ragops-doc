@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+//import ReactGA from "react-ga4";
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import { styled, keyframes } from '@mui/system';
 import { Button, TextField, Typography, Paper, List, ListItem, ListItemText, CircularProgress, Box } from '@mui/material';
@@ -8,7 +9,11 @@ import { motion, useAnimation } from 'framer-motion';
 import { useSpring, animated } from '@react-spring/web';
 import { ParallaxProvider, Parallax } from 'react-scroll-parallax';
 import { useInView } from 'react-intersection-observer';
-import logo from './logo2.png';
+
+import '@fontsource/cherry-bomb-one';
+
+// Initialize Google Analytics
+//ReactGA.initialize("G-XXXXXXXXXX"); // Replace with your Google Analytics measurement ID
 
 const theme = createTheme({
   palette: {
@@ -27,11 +32,11 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: '"Playfair Display", serif',
+    fontFamily: '"Cherry Bomb One", cursive',
     h1: {
-      fontSize: '4rem',
+      fontSize: '2.5rem',
       fontWeight: 700,
-      color: '#C8A2C8', // Lilac color
+      color: '#C8A2C8',
       textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
     },
     h5: {
@@ -172,7 +177,7 @@ const AnimatedText = ({ children }) => {
   const controls = useAnimation();
   const [ref, inView] = useInView();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (inView) {
       controls.start({ opacity: 1, y: 0 });
     }
@@ -196,6 +201,13 @@ function App() {
   const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [feedback, setFeedback] = useState('');
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+
+  //useEffect(() => {
+    // Send pageview with a custom path
+    //ReactGA.send({ hitType: "pageview", page: "/home" });
+  //}, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -203,23 +215,54 @@ function App() {
     setError(null);
     setResponse(null);
 
+    // ReactGA.event({
+    //   category: "User",
+    //   action: "Submitted Question",
+    // });
+
     try {
       const result = await axios.post('https://77ywt7l8yd.execute-api.us-east-1.amazonaws.com/prod/recommend', { question });
       const parsedBody = JSON.parse(result.data.body);
       setResponse(parsedBody);
+
+      // ReactGA.event({
+      //   category: "API",
+      //   action: "Received Answer",
+      //   label: question,
+      // });
     } catch (err) {
       console.error('Error:', err);
       setError('An error occurred. Please try again.');
+
+      // ReactGA.event({
+      //   category: "Error",
+      //   action: "API Error",
+      //   label: err.message,
+      // });
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFeedbackSubmit = async (e) => {
+    e.preventDefault();
+    setFeedbackSubmitted(true);
+    
+    console.log('Feedback submitted:', feedback);
+
+    // ReactGA.event({
+    //   category: 'User',
+    //   action: 'Submitted Feedback',
+    // });
+
+    setFeedback('');
   };
 
   const fadeIn = useSpring({
     opacity: response ? 1 : 0,
     transform: response ? 'translateY(0)' : 'translateY(50px)',
   });
-  
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -241,9 +284,9 @@ function App() {
                   <circle cx="35" cy="40" r="5" fill="#FF6B6B" />
                   <circle cx="65" cy="40" r="5" fill="#FF6B6B" />
                 </Logo>
-              <FancyHeader variant="h1" component="h1" gutterBottom>
-                RAGOps Recommender
-              </FancyHeader>
+                <FancyHeader variant="h1" component="h1">
+                  RAGOps Recommender
+                </FancyHeader>
               </HeaderContainer>
             </motion.div>
           </Parallax>
@@ -328,6 +371,48 @@ function App() {
                       Number of relevant products found: {response.num_results}
                     </Typography>
                   </AnimatedText>
+                </StyledPaper>
+              </animated.div>
+            </Parallax>
+          )}
+
+          {response && (
+            <Parallax speed={15}>
+              <animated.div style={fadeIn}>
+                <StyledPaper elevation={3} style={{ marginTop: '2rem' }}>
+                  <AnimatedText>
+                    <Typography variant="h6" gutterBottom>
+                      We'd love your feedback!
+                    </Typography>
+                  </AnimatedText>
+                  {!feedbackSubmitted ? (
+                    <form onSubmit={handleFeedbackSubmit}>
+                      <TextField
+                        label="Your feedback"
+                        variant="outlined"
+                        value={feedback}
+                        onChange={(e) => setFeedback(e.target.value)}
+                        multiline
+                        rows={4}
+                        fullWidth
+                        margin="normal"
+                      />
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        color="secondary"
+                        disabled={!feedback}
+                      >
+                        Submit Feedback
+                      </Button>
+                    </form>
+                  ) : (
+                    <AnimatedText>
+                      <Typography>
+                        Thank you for your feedback!
+                      </Typography>
+                    </AnimatedText>
+                  )}
                 </StyledPaper>
               </animated.div>
             </Parallax>

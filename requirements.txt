@@ -1,0 +1,4 @@
+pinecone-client
+voyageai
+anthropic
+boto3

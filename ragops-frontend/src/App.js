@@ -121,7 +121,7 @@ const StyledForm = styled('form')({
 });
 
 const FancyHeader = styled(Typography)(({ theme }) => ({
-  background: 'linear-gradient(45deg, #C8A2C8 30%, #E6E6FA 90%)', // Lilac gradient
+  background: '#00008B', // Lilac gradient
   WebkitBackgroundClip: 'text',
   WebkitTextFillColor: 'transparent',
   padding: '20px',

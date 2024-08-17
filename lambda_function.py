@@ -5,6 +5,7 @@ import boto3
 from pinecone import Pinecone, ServerlessSpec
 import voyageai
 import anthropic
+import re
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -36,21 +37,39 @@ def clean_text(text):
 
 def generate_keywords(question):
     prompt = f"""Generate 5 diverse search keywords for: {question}
-    Output as JSON with a 'keywords' key containing an array of strings."""
-    response = claude.messages.create(
-        model="claude-3-opus-20240229",
-        max_tokens=150,
-        messages=[{"role": "user", "content": prompt}]
-    )
-    
-    print(f"Raw Claude response: {response.content[0].text}")  # Debug print
-    
+    Output ONLY a JSON object with a 'keywords' key containing an array of strings. Do not include any explanation or additional text."""
     try:
-        keywords_json = json.loads(response.content[0].text)
-        return keywords_json['keywords']
-    except json.JSONDecodeError:
-        logging.error("Failed to parse keyword JSON")
-        return []
+        response = claude.messages.create(
+            model="claude-3-opus-20240229",
+            max_tokens=150,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        
+        raw_response = response.content[0].text
+        print(f"Raw Claude response: {raw_response}")  # Debug print
+        
+        # Extract JSON from the response
+        json_match = re.search(r'\{.*\}', raw_response, re.DOTALL)
+        if json_match:
+            json_str = json_match.group(0)
+            keywords_json = json.loads(json_str)
+            return keywords_json.get('keywords', [])
+        else:
+            print("No JSON found in Claude's response")
+            return extract_keywords(raw_response)
+    except json.JSONDecodeError as e:
+        print(f"JSON decode error: {str(e)}")
+        return extract_keywords(raw_response)
+    except Exception as e:
+        print(f"Error generating keywords: {str(e)}")
+        return extract_keywords(question)
+
+def extract_keywords(text):
+    # Simple keyword extraction
+    words = re.findall(r'\b\w+\b', text.lower())
+    stopwords = set(['i', 'want', 'to', 'a', 'my', 'what', 'can', 'get', 'the', 'for', 'an', 'as', 'with'])
+    keywords = [word for word in words if word not in stopwords and len(word) > 2]
+    return list(set(keywords))[:5]  # Return up to 5 unique keywords
 
 def search_products(keywords, top_k=3):
     index = ensure_index_exists()
@@ -102,13 +121,17 @@ def lambda_handler(event, context):
         # Generate keywords
         keywords = generate_keywords(question)
         print(f"Generated keywords: {keywords}")  # Debug print
-        
+
         # Search for relevant products
         results = search_products(keywords)
         print(f"Found {len(results)} relevant products")  # Debug print
         
         # Generate answer
-        answer = generate_answer(results, question)
+        if results:
+            answer = generate_answer(results, question)
+        else:
+            # Fallback answer if no products found
+            answer = generate_fallback_answer(question)
         
         return {
             'statusCode': 200,
@@ -120,7 +143,7 @@ def lambda_handler(event, context):
             })
         }
     except Exception as e:
-        logging.error(f"Error: {str(e)}")
+        print(f"Error: {str(e)}")
         return {
             'statusCode': 500,
             'body': json.dumps({'error': 'An internal error occurred'})
